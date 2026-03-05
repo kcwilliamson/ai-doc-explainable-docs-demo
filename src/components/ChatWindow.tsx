@@ -8,6 +8,7 @@ export interface RetrievalResult {
   title: string;
   section: string;
   matchedTerms: string[];
+  explanation: string;
 }
 
 export interface ThinkingPayload {
@@ -33,6 +34,9 @@ const SAMPLE_QUESTIONS = [
   "How do I recover from detached HEAD?",
   "What should I do when my push is rejected?",
 ];
+const NO_DOC_SENTINEL = "not documented in this demo.";
+const NO_DOC_USER_MESSAGE =
+  "The model could not find documentation about this topic.\nThis prevents hallucinations.";
 
 function parseDocSection(value: unknown): DocSection {
   if (
@@ -71,6 +75,8 @@ function normalizeThinkingPayload(raw: unknown): ThinkingPayload | null {
           matchedTerms: Array.isArray(value.matchedTerms)
             ? value.matchedTerms.filter((term): term is string => typeof term === "string")
             : [],
+          explanation:
+            typeof value.explanation === "string" ? value.explanation : "No explanation provided.",
         };
       })
     : [];
@@ -127,6 +133,8 @@ function parseChatResponse(
   const answer =
     answerCandidates.find((candidate): candidate is string => typeof candidate === "string") ??
     "I got a response, but no answer text was provided.";
+  const normalizedAnswer =
+    answer.trim().toLowerCase() === NO_DOC_SENTINEL ? NO_DOC_USER_MESSAGE : answer;
 
   const thinkingSource = value.thinking ?? {
     retrievalResults: value.retrievalResults,
@@ -135,7 +143,7 @@ function parseChatResponse(
   };
 
   return {
-    answer,
+    answer: normalizedAnswer,
     thinking: normalizeThinkingPayload(thinkingSource) ?? {
       mode: fallbackMode,
       retrievalResults: [],
@@ -177,10 +185,6 @@ export default function ChatWindow({ selectedDoc, onThinkingUpdate }: ChatWindow
         },
         body: JSON.stringify({ question: text, mode }),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
 
       const data = (await response.json()) as unknown;
       const parsed = parseChatResponse(data, mode);
@@ -265,7 +269,7 @@ export default function ChatWindow({ selectedDoc, onThinkingUpdate }: ChatWindow
             checked={mode === "structured"}
             onChange={(event) => setMode(event.target.checked ? "structured" : "unstructured")}
           />
-          <span>Structured Knowledge</span>
+          <span>Structured Knowledge {mode === "structured" ? "ON" : "OFF"}</span>
         </label>
         <input
           type="text"

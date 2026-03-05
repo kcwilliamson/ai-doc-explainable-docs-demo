@@ -7,6 +7,8 @@ interface ThinkingPanelProps {
 
 export default function ThinkingPanel({ thinking }: ThinkingPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const summaryNote =
+    thinking?.notes.find((note) => note.startsWith("What happened:")) ?? "What happened: send a question to populate retrieval details.";
 
   return (
     <aside className="panel thinking-panel">
@@ -25,6 +27,11 @@ export default function ThinkingPanel({ thinking }: ThinkingPanelProps) {
 
       {isOpen && thinking ? (
         <div className="thinking-content">
+          <section>
+            <h3>What happened?</h3>
+            <p className="mode-line">{summaryNote.replace("What happened: ", "")}</p>
+          </section>
+
           <section>
             <h3>mode</h3>
             <p className="mode-line">
@@ -50,6 +57,7 @@ export default function ThinkingPanel({ thinking }: ThinkingPanelProps) {
                       score: {result.score.toFixed(3)} | section: {result.section}
                     </p>
                     <p>matchedTerms: {result.matchedTerms.join(", ") || "none"}</p>
+                    <p>why ranked: {result.explanation}</p>
                   </li>
                 ))}
               </ul>

@@ -28,7 +28,7 @@ npm run dev
 
 ```bash
 npm run build
-npx wrangler pages dev dist
+npm run pages:dev
 ```
 
 If you use function secrets locally, copy `.dev.vars.example` to `.dev.vars` and set values.
@@ -91,3 +91,41 @@ npm create cloudflare@latest ai-doc-explainable-demo -- --framework=react --plat
 ```
 
 This repository is already laid out to match that goal and include `functions/` for Pages Functions.
+
+## Doctor
+
+### Node requirement
+
+- Use Node `18.18.0+` (Node 20 LTS recommended).
+
+### Clean reinstall
+
+```bash
+cd /Users/katiewilliamson/Desktop/portfolio-2026-live/ai-doc-explainable-demo
+rm -rf node_modules package-lock.json
+npm install
+```
+
+No `--legacy-peer-deps` or `--force` is required with the pinned versions in this repo.
+
+### Local run (Pages + Functions)
+
+```bash
+npm run build
+npx wrangler pages dev dist
+```
+
+If you get a browser 404 at `/`, verify you started Wrangler from this repo and built successfully.
+If port 9229 is busy on your machine, `npm run pages:dev` already moves the inspector to `9230`.
+
+### Quick curl checks
+
+```bash
+curl -s http://127.0.0.1:8788/api/health
+```
+
+```bash
+curl -s -X POST http://127.0.0.1:8788/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"How do I undo a staged file?","mode":"structured"}'
+```

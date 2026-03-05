@@ -222,6 +222,7 @@
   margin: 0;
   font-size: 0.93rem;
   color: #d9e8f7;
+  white-space: pre-line;
 }
 
 .sample-questions {
