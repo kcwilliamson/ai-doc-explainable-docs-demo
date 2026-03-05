@@ -1,0 +1,114 @@
+[
+  {
+    "id": "doc-001",
+    "section": "concepts",
+    "title": "What Git Tracks",
+    "body": "Git tracks snapshots of files, not just lines of text. Think of each commit as a saved version of your project at a point in time. It keeps history so you can compare versions, restore old work, and understand what changed. Git does not track every temporary file by default, so teams usually define ignored files. This model helps you work safely because you can try changes, then keep or discard them.",
+    "tags": ["git", "basics", "snapshots", "history", "version-control"]
+  },
+  {
+    "id": "doc-002",
+    "section": "concepts",
+    "title": "Working Tree, Staging, and Commits",
+    "body": "Git has three common states: working tree, staging area, and commit history. The working tree is what you are editing now. The staging area is your draft of what will go into the next commit. A commit is the saved checkpoint in history. This flow is useful because you can stage only the parts you want, then write a clear message for that checkpoint. If something looks wrong, you can adjust before committing.",
+    "tags": ["git", "staging", "commit", "workflow", "concepts"]
+  },
+  {
+    "id": "doc-003",
+    "section": "concepts",
+    "title": "Branches in Plain English",
+    "body": "A branch is just a named line of work. You can treat the main branch as your stable line and use feature branches for experiments or updates. Branches let multiple people work at the same time without stepping on each other. When a feature is ready, you merge it back. If plans change, you can delete the feature branch and keep main clean. This reduces risk and keeps review simpler.",
+    "tags": ["git", "branches", "collaboration", "main", "feature-branch"]
+  },
+  {
+    "id": "doc-004",
+    "section": "tutorials",
+    "title": "Start a New Repository",
+    "body": "To start, create a folder, run git init, and add a README so the repo has a first file. Then run git add . and git commit -m \"Initial commit\". Connect to a remote host with git remote add origin <url>. Finally push with git push -u origin main. From then on, your usual loop is edit files, check status, stage changes, and commit with clear messages.",
+    "tags": ["git", "tutorial", "init", "remote", "first-commit"]
+  },
+  {
+    "id": "doc-005",
+    "section": "tutorials",
+    "title": "Daily Save Flow",
+    "body": "A reliable daily flow is: git status, git add, git commit, then git push. Start by checking what changed. Stage only the files you want in this commit. Write a commit message that explains intent, not just \"updates\". Push often so your remote copy stays current. If you are working with a team, pull before pushing to reduce conflicts. Small, frequent commits make mistakes easier to fix.",
+    "tags": ["git", "tutorial", "status", "commit-message", "push"]
+  },
+  {
+    "id": "doc-006",
+    "section": "tutorials",
+    "title": "Undo a Commit You Have Not Pushed",
+    "body": "If your last commit is wrong and not pushed yet, you can undo it safely. Use git reset --soft HEAD~1 to keep your changes staged, or git reset --mixed HEAD~1 to keep them unstaged. This removes the commit from local history so you can fix and recommit. Use this only before sharing that commit with others. After you push, prefer git revert to avoid rewriting shared history.",
+    "tags": ["git", "undo", "reset", "commit", "local-history"]
+  },
+  {
+    "id": "doc-007",
+    "section": "reference",
+    "title": "Reset vs Revert",
+    "body": "git reset moves branch history backward. It is best for local cleanup before changes are shared. git revert creates a new commit that cancels an earlier commit, which is safer for shared branches. Use reset when you want to rewrite your own recent history. Use revert when teammates may already have the commit. If you are unsure, choose revert because it preserves an auditable timeline.",
+    "tags": ["git", "undo", "reset", "revert", "reference"]
+  },
+  {
+    "id": "doc-008",
+    "section": "reference",
+    "title": "Undo Staged Changes",
+    "body": "If you staged a file by mistake, unstage it with git restore --staged <file>. This keeps your edits in the working tree but removes them from the next commit draft. To unstage everything, use git restore --staged . Then run git status to confirm. This is useful when you want cleaner, smaller commits. It does not delete your edits; it only changes what is staged.",
+    "tags": ["git", "undo", "staging", "restore", "reference"]
+  },
+  {
+    "id": "doc-009",
+    "section": "reference",
+    "title": "View History and Differences",
+    "body": "Use git log to view commit history and git diff to inspect code differences. git log --oneline gives a short readable list. git diff shows unstaged edits, and git diff --staged shows what will be committed. These commands help you avoid surprises before you commit or push. Good review habits here reduce bugs and make code review easier for teammates.",
+    "tags": ["git", "log", "diff", "history", "review"]
+  },
+  {
+    "id": "doc-010",
+    "section": "reference",
+    "title": "Switching Branches Safely",
+    "body": "Use git switch <branch> to move to an existing branch and git switch -c <name> to create a new one. Before switching, run git status and commit or stash unfinished work. This avoids carrying accidental edits into another task. Branch names should be short and clear, such as feature/login-copy. Clean branch habits make collaboration, review, and rollback easier.",
+    "tags": ["git", "branches", "switch", "stash", "reference"]
+  },
+  {
+    "id": "doc-011",
+    "section": "troubleshooting",
+    "title": "Fix a Merge Conflict",
+    "body": "A merge conflict means Git could not combine two edits automatically. Open each conflicted file and look for conflict markers. Decide which lines to keep, remove the markers, then save. Stage the resolved files with git add and finish with git commit. If the merge is too messy, you can abort with git merge --abort and try again later. Smaller, frequent pulls usually reduce conflict size.",
+    "tags": ["git", "troubleshooting", "merge-conflict", "resolve", "collaboration"]
+  },
+  {
+    "id": "doc-012",
+    "section": "troubleshooting",
+    "title": "Detached HEAD Explained",
+    "body": "Detached HEAD means you checked out a commit directly instead of a branch. You can explore safely, but new commits may be hard to find later. If you made useful changes, create a branch right away with git switch -c <new-branch>. That attaches your work to a named branch. If you were only inspecting history, switch back to your branch with git switch main.",
+    "tags": ["git", "troubleshooting", "detached-head", "branches", "recovery"]
+  },
+  {
+    "id": "doc-013",
+    "section": "troubleshooting",
+    "title": "Rejected Push (Non-Fast-Forward)",
+    "body": "A rejected push usually means the remote branch has commits you do not have locally. First run git pull --rebase origin <branch> to replay your commits on top of the latest remote history. Resolve conflicts if prompted, then push again. Avoid force push on shared branches unless your team explicitly agrees. Pulling regularly and keeping commits small lowers the chance of this error.",
+    "tags": ["git", "troubleshooting", "push", "rebase", "remote"]
+  },
+  {
+    "id": "doc-014",
+    "section": "tutorials",
+    "title": "Revert a Bad Commit After Push",
+    "body": "If a bad commit is already pushed, use git revert <commit-hash>. This creates a new commit that undoes the earlier one without rewriting shared history. After reverting, run tests and push the fix commit. This is safer for team branches because everyone keeps a consistent timeline. You can revert a range too, but start with one commit at a time if you are new to Git.",
+    "tags": ["git", "undo", "revert", "shared-history", "tutorial"]
+  },
+  {
+    "id": "doc-015",
+    "section": "concepts",
+    "title": "Why Pull Requests Help",
+    "body": "A pull request is a structured way to review changes before merging. It gives context, shows diffs, and records decisions. Even small teams benefit because reviews catch mistakes and share knowledge. A good pull request has a clear title, short summary, and focused scope. Keep it small when possible so reviewers can respond quickly and confidently.",
+    "tags": ["git", "concepts", "pull-request", "review", "teamwork"]
+  },
+  {
+    "id": "doc-016",
+    "section": "reference",
+    "title": "Recover with Reflog",
+    "body": "If you think work disappeared after reset or checkout, try git reflog. Reflog shows where HEAD pointed recently, even for actions not visible in normal log. Find the commit hash you need and recover with git switch -c rescue-branch <hash> or git reset --hard <hash> if appropriate. Reflog is a practical safety net for local recovery.",
+    "tags": ["git", "reference", "recovery", "reflog", "undo"]
+  }
+]
