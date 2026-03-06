@@ -9,7 +9,7 @@ interface RateLimiter {
 
 interface Env {
   OPENAI_API_KEY?: string;
-  AI_CHAT_RATE_LIMITER: RateLimiter;
+  AI_CHAT_RATE_LIMITER?: RateLimiter;
 }
 
 interface DocEntry {
@@ -474,27 +474,29 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   }
 
-  const actorKey = getActorKeyFromHeaders(context.request.headers);
-  const rateLimitKey = `${actorKey}:/api/chat`;
-  const { success } = await context.env.AI_CHAT_RATE_LIMITER.limit({ key: rateLimitKey });
+  if (context.env.AI_CHAT_RATE_LIMITER) {
+    const actorKey = getActorKeyFromHeaders(context.request.headers);
+    const rateLimitKey = `${actorKey}:/api/chat`;
+    const { success } = await context.env.AI_CHAT_RATE_LIMITER.limit({ key: rateLimitKey });
 
-  if (!success) {
-    return Response.json(
-      {
-        answer: RATE_LIMITED_MESSAGE,
-        thinking: {
-          question,
-          mode,
-          retrievalResults: [],
-          selectedChunks: [],
-          notes: [
-            "What happened: rate limiting triggered for POST /api/chat.",
-            "Per-actor throttling blocked this request. Try again in a moment.",
-          ],
+    if (!success) {
+      return Response.json(
+        {
+          answer: RATE_LIMITED_MESSAGE,
+          thinking: {
+            question,
+            mode,
+            retrievalResults: [],
+            selectedChunks: [],
+            notes: [
+              "What happened: rate limiting triggered for POST /api/chat.",
+              "Per-actor throttling blocked this request. Try again in a moment.",
+            ],
+          },
         },
-      },
-      { status: 429 }
-    );
+        { status: 429 }
+      );
+    }
   }
 
   const terms = questionTerms(question);
