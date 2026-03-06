@@ -1,3 +1,8 @@
 name = "ai-doc-explainable-demo"
 compatibility_date = "2025-11-01"
 pages_build_output_dir = "dist"
+
+[[ratelimits]]
+name = "AI_CHAT_RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 30, period = 60 }

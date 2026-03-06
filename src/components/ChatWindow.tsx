@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import type { DocEntry, DocChunk, DocSection } from "../types/docs";
+import { useState } from "react";
+import type { DocChunk, DocSection } from "../types/docs";
+
 export type ChatMode = "structured" | "unstructured";
 
 export interface RetrievalResult {
@@ -25,8 +26,9 @@ interface ChatMessage {
 }
 
 interface ChatWindowProps {
-  selectedDoc: DocEntry | null;
   onThinkingUpdate: (thinking: ThinkingPayload | null) => void;
+  mode: ChatMode;
+  onModeChange: (mode: ChatMode) => void;
 }
 
 const SAMPLE_QUESTIONS = [
@@ -34,9 +36,6 @@ const SAMPLE_QUESTIONS = [
   "How do I recover from detached HEAD?",
   "What should I do when my push is rejected?",
 ];
-const NO_DOC_SENTINEL = "not documented in this demo.";
-const NO_DOC_USER_MESSAGE =
-  "The model could not find documentation about this topic.\nThis prevents hallucinations.";
 
 function parseDocSection(value: unknown): DocSection {
   if (
@@ -62,7 +61,7 @@ function normalizeThinkingPayload(raw: unknown): ThinkingPayload | null {
     notes?: unknown;
   };
 
-  const mode: ChatMode = candidate.mode === "unstructured" ? "unstructured" : "structured";
+  const parsedMode: ChatMode = candidate.mode === "unstructured" ? "unstructured" : "structured";
 
   const retrievalResults = Array.isArray(candidate.retrievalResults)
     ? candidate.retrievalResults.map((item, idx) => {
@@ -113,7 +112,7 @@ function normalizeThinkingPayload(raw: unknown): ThinkingPayload | null {
     : [];
 
   return {
-    mode,
+    mode: parsedMode,
     retrievalResults,
     selectedChunks,
     notes,
@@ -133,8 +132,6 @@ function parseChatResponse(
   const answer =
     answerCandidates.find((candidate): candidate is string => typeof candidate === "string") ??
     "I got a response, but no answer text was provided.";
-  const normalizedAnswer =
-    answer.trim().toLowerCase() === NO_DOC_SENTINEL ? NO_DOC_USER_MESSAGE : answer;
 
   const thinkingSource = value.thinking ?? {
     retrievalResults: value.retrievalResults,
@@ -143,7 +140,7 @@ function parseChatResponse(
   };
 
   return {
-    answer: normalizedAnswer,
+    answer,
     thinking: normalizeThinkingPayload(thinkingSource) ?? {
       mode: fallbackMode,
       retrievalResults: [],
@@ -153,13 +150,10 @@ function parseChatResponse(
   };
 }
 
-export default function ChatWindow({ selectedDoc, onThinkingUpdate }: ChatWindowProps) {
+export default function ChatWindow({ onThinkingUpdate, mode, onModeChange }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [question, setQuestion] = useState("");
-  const [mode, setMode] = useState<ChatMode>("structured");
   const [isSending, setIsSending] = useState(false);
-
-  const canSend = useMemo(() => question.trim().length > 0 && !isSending, [question, isSending]);
 
   async function sendQuestion(nextQuestion?: string) {
     const text = (nextQuestion ?? question).trim();
@@ -214,70 +208,64 @@ export default function ChatWindow({ selectedDoc, onThinkingUpdate }: ChatWindow
   }
 
   return (
-    <section className="panel chat-panel">
+    <section className="panel chat-drawer inline" aria-label="Documentation assistant">
       <div className="panel-header">
-        <h2>Chat</h2>
+        <h2>Ask AI a question</h2>
       </div>
 
-      <article className="selected-doc-card" aria-live="polite">
-        <h3>Selected Doc</h3>
-        {selectedDoc ? (
-          <>
-            <h4>{selectedDoc.title}</h4>
-            <p>{selectedDoc.body}</p>
-            <p className="chip-row">{selectedDoc.tags.map((tag) => `#${tag}`).join(" ")}</p>
-          </>
-        ) : (
-          <p>Select a doc from the left panel to anchor the conversation.</p>
-        )}
-      </article>
+      <label
+        className="mode-switch mode-under-chat"
+        title="Structured ON improves retrieval ranking; OFF weakens retrieval to demonstrate answer quality changes."
+      >
+        <input
+          type="checkbox"
+          checked={mode === "structured"}
+          onChange={(event) => onModeChange(event.target.checked ? "structured" : "unstructured")}
+        />
+        <span>Structured Knowledge {mode === "structured" ? "ON" : "OFF"}</span>
+      </label>
 
       <div className="message-history" aria-live="polite">
-        {messages.length === 0 ? (
-          <p className="empty-state">Ask a question to start the conversation.</p>
-        ) : (
-          messages.map((message) => (
-            <div key={message.id} className={`message ${message.role}`}>
-              <span className="message-role">{message.role === "user" ? "You" : "Assistant"}</span>
-              <p>{message.content}</p>
+        <div className="message-stack">
+          {messages.length === 0 ? (
+            <p className="empty-state">Ask a question to start the conversation.</p>
+          ) : (
+            messages.map((message) => (
+              <div key={message.id} className={`message ${message.role}`}>
+                <span className="message-role">{message.role === "user" ? "You" : "Assistant"}</span>
+                <p>{message.content}</p>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="message-history-tools">
+          <div className="sample-questions">
+            <span>Sample questions</span>
+            <div className="sample-actions">
+              {SAMPLE_QUESTIONS.map((sample) => (
+                <button key={sample} type="button" onClick={() => sendQuestion(sample)} disabled={isSending}>
+                  {sample}
+                </button>
+              ))}
             </div>
-          ))
-        )}
-      </div>
-
-      <div className="sample-questions">
-        <span>Sample questions</span>
-        <div className="sample-actions">
-          {SAMPLE_QUESTIONS.map((sample) => (
-            <button key={sample} type="button" onClick={() => sendQuestion(sample)} disabled={isSending}>
-              {sample}
-            </button>
-          ))}
+          </div>
         </div>
       </div>
 
       <form
-        className="chat-input-row"
+        className="chat-input-row wide"
         onSubmit={(event) => {
           event.preventDefault();
           void sendQuestion();
         }}
       >
-        <label className="mode-switch">
-          <input
-            type="checkbox"
-            checked={mode === "structured"}
-            onChange={(event) => setMode(event.target.checked ? "structured" : "unstructured")}
-          />
-          <span>Structured Knowledge {mode === "structured" ? "ON" : "OFF"}</span>
-        </label>
         <input
           type="text"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
           placeholder="Ask about Git workflows, mistakes, or troubleshooting..."
         />
-        <button type="submit" disabled={!canSend}>
+        <button type="submit" disabled={isSending || question.trim().length === 0}>
           {isSending ? "Sending..." : "Send"}
         </button>
       </form>

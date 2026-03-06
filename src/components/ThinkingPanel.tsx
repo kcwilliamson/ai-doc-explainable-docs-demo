@@ -6,14 +6,15 @@ interface ThinkingPanelProps {
 }
 
 export default function ThinkingPanel({ thinking }: ThinkingPanelProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const summaryNote =
     thinking?.notes.find((note) => note.startsWith("What happened:")) ?? "What happened: send a question to populate retrieval details.";
+  const topScore = thinking?.retrievalResults[0]?.score;
 
   return (
     <aside className="panel thinking-panel">
       <div className="panel-header thinking-header">
-        <h2>Reasoning Trace</h2>
+        <h2 title="Backend retrieval logs and ranking details for this answer.">AI Thinking</h2>
         <button type="button" className="toggle-btn" onClick={() => setIsOpen((prev) => !prev)}>
           {isOpen ? "Hide AI thinking" : "Show AI thinking"}
         </button>
@@ -30,6 +31,14 @@ export default function ThinkingPanel({ thinking }: ThinkingPanelProps) {
           <section>
             <h3>What happened?</h3>
             <p className="mode-line">{summaryNote.replace("What happened: ", "")}</p>
+            {typeof topScore === "number" ? (
+              <p
+                className="top-score-help"
+                title="Top score is the confidence of the best matched chunk. Higher means the retrieved context is a better fit for the question."
+              >
+                Top score: <strong>{topScore.toFixed(3)}</strong>
+              </p>
+            ) : null}
           </section>
 
           <section>
@@ -43,12 +52,12 @@ export default function ThinkingPanel({ thinking }: ThinkingPanelProps) {
           </section>
 
           <section>
-            <h3>retrievalResults</h3>
+            <h3>Top retrieval matches</h3>
             {thinking.retrievalResults.length === 0 ? (
               <p className="empty-state">No retrieval results returned.</p>
             ) : (
               <ul className="thinking-list">
-                {thinking.retrievalResults.map((result) => (
+                {thinking.retrievalResults.slice(0, 3).map((result) => (
                   <li key={`${result.rank}-${result.title}`}>
                     <p>
                       <strong>#{result.rank}</strong> {result.title}
@@ -59,37 +68,6 @@ export default function ThinkingPanel({ thinking }: ThinkingPanelProps) {
                     <p>matchedTerms: {result.matchedTerms.join(", ") || "none"}</p>
                     <p>why ranked: {result.explanation}</p>
                   </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h3>selectedChunks</h3>
-            {thinking.selectedChunks.length === 0 ? (
-              <p className="empty-state">No chunks selected.</p>
-            ) : (
-              <div className="chunk-accordion">
-                {thinking.selectedChunks.map((chunk) => (
-                  <details key={chunk.chunkId}>
-                    <summary>
-                      {chunk.title} ({chunk.section})
-                    </summary>
-                    <p>{chunk.text || "No chunk text provided."}</p>
-                  </details>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h3>notes</h3>
-            {thinking.notes.length === 0 ? (
-              <p className="empty-state">No notes returned.</p>
-            ) : (
-              <ul className="thinking-list">
-                {thinking.notes.map((note, idx) => (
-                  <li key={`${note}-${idx}`}>{note}</li>
                 ))}
               </ul>
             )}

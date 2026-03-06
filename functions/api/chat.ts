@@ -3,8 +3,13 @@ import docsData from "../_data/docs.json";
 type DocSection = "concepts" | "tutorials" | "reference" | "troubleshooting";
 type ChatMode = "structured" | "unstructured";
 
+interface RateLimiter {
+  limit: (options: { key: string }) => Promise<{ success: boolean }>;
+}
+
 interface Env {
   OPENAI_API_KEY?: string;
+  AI_CHAT_RATE_LIMITER: RateLimiter;
 }
 
 interface DocEntry {
@@ -56,7 +61,8 @@ const OPENAI_SYSTEM_INSTRUCTION =
 const NO_DOC_SENTINEL = "Not documented in this demo.";
 const NO_DOC_USER_MESSAGE =
   "The model could not find documentation about this topic.\nThis prevents hallucinations.";
-const OPENAI_TEMPORARY_MESSAGE = "AI temporarily unavailable — showing retrieval results only.";
+const OPENAI_TEMPORARY_MESSAGE = "AI temporarily unavailable. Please try again in a minute.";
+const RATE_LIMITED_MESSAGE = "This demo is rate-limited to prevent abuse. Please try again in a minute.";
 
 const STOPWORDS = new Set([
   "a",
@@ -122,6 +128,30 @@ function splitIntoSentences(input: string): string[] {
 
 function parseMode(value: unknown): ChatMode {
   return value === "unstructured" ? "unstructured" : "structured";
+}
+
+function getActorKeyFromHeaders(headers: Headers): string {
+  const preferredHeaders = ["cf-access-authenticated-user-email", "x-demo-user-id", "x-client-id"];
+
+  for (const name of preferredHeaders) {
+    const value = headers.get(name)?.trim();
+    if (value) {
+      return value.toLowerCase();
+    }
+  }
+
+  const forwardedFor = headers
+    .get("x-forwarded-for")
+    ?.split(",")
+    .map((value) => value.trim())
+    .find(Boolean);
+
+  if (forwardedFor) {
+    return forwardedFor;
+  }
+
+  const connectingIp = headers.get("cf-connecting-ip")?.trim();
+  return connectingIp || "unknown-actor";
 }
 
 function inferIntentProfile(question: string, terms: string[]): IntentProfile {
@@ -372,7 +402,7 @@ async function generateAnswerWithOpenAI(
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4.1-mini",
+      model: "gpt-4o-mini",
       instructions: OPENAI_SYSTEM_INSTRUCTION,
       temperature: 0,
       input: [
@@ -441,6 +471,29 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         },
       },
       { status: 400 }
+    );
+  }
+
+  const actorKey = getActorKeyFromHeaders(context.request.headers);
+  const rateLimitKey = `${actorKey}:/api/chat`;
+  const { success } = await context.env.AI_CHAT_RATE_LIMITER.limit({ key: rateLimitKey });
+
+  if (!success) {
+    return Response.json(
+      {
+        answer: RATE_LIMITED_MESSAGE,
+        thinking: {
+          question,
+          mode,
+          retrievalResults: [],
+          selectedChunks: [],
+          notes: [
+            "What happened: rate limiting triggered for POST /api/chat.",
+            "Per-actor throttling blocked this request. Try again in a moment.",
+          ],
+        },
+      },
+      { status: 429 }
     );
   }
 
@@ -536,9 +589,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown OpenAI error";
+    const safeDetail = message.startsWith("OpenAI HTTP ") ? message : "OpenAI request failed";
 
     return Response.json({
-      answer: fallbackAnswerFromChunks(question, mode, selected),
+      answer: OPENAI_TEMPORARY_MESSAGE,
       thinking: {
         question,
         mode,
@@ -547,9 +601,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         notes: [
           summary,
           ...modeNotes,
-          "OpenAI call failed; retrieval trace shown.",
-          message,
-          "Used deterministic local fallback answer from retrieval results.",
+          "OpenAI call failed; returned a graceful retry message.",
+          `Safe detail: ${safeDetail}`,
+          "No secrets or provider responses were returned.",
         ],
       },
     });

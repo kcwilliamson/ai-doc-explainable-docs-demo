@@ -1,8 +1,8 @@
 :root {
-  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,6 +15,8 @@
 
 body {
   margin: 0;
+  background: #f7f7f8;
+  color: #141414;
 }
 
 button,

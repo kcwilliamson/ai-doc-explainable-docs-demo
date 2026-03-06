@@ -82,6 +82,36 @@ OPENAI_API_KEY=your_real_key_here
    - **Production**
 4. Save and redeploy so `/api/chat` can read the key.
 
+## Security & Rate Limiting
+
+- `/api/chat` is protected with Cloudflare Workers Rate Limiting binding `AI_CHAT_RATE_LIMITER`.
+- `wrangler.toml` uses `[[ratelimits]]` and requires Wrangler `>= 4.36.0` (your version is already newer).
+- Set `namespace_id` in `wrangler.toml` to the Rate Limiting namespace ID from your Cloudflare dashboard.
+- `OPENAI_API_KEY` must be set in Cloudflare Pages environment variables (Preview + Production) and in local `.dev.vars` for local function calls.
+- `.dev.vars` is ignored by git (do not commit secrets).
+
+### Local run with Pages Functions
+
+```bash
+npm install
+npm run build
+npx wrangler pages dev dist
+```
+
+### Quick API checks
+
+```bash
+curl -i http://127.0.0.1:8788/api/health
+```
+
+```bash
+curl -i -X POST http://127.0.0.1:8788/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"How do I undo a staged file?","mode":"structured"}'
+```
+
+Rate limiting is local to a Cloudflare location and eventually consistent, so short bursts near limits may not be perfectly synchronized across regions.
+
 ## C3 command (recommended scaffold command)
 
 Run this on a machine with npm registry access:
