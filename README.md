@@ -1,161 +1,74 @@
-# ai-doc-explainable-demo
+# AI Doc Explainable Docs Demo
 
-React + TypeScript + Vite app prepared for Cloudflare Pages with Pages Functions.
+An interactive demo showing how AI documentation assistants succeed or fail based on **retrieval quality**, not just the model or the docs themselves.
+
+## Live Demo
+https://ai-doc-explainable-docs-demo.pages.dev/
 
 ## Overview
 
-- Frontend: React + TypeScript + Vite
-- Hosting: Cloudflare Pages
-- Serverless endpoints: `functions/` (Pages Functions)
-- Example endpoint: `GET /api/health`
+This project demonstrates a core truth about AI-powered documentation:
 
-## Local development
+> The model can only answer from what it’s given — and retrieval determines what it sees.
 
-1. Install dependencies:
+Using a small Git documentation set, this app lets you ask questions in two modes:
 
-```bash
-cd ai-doc-explainable-demo
-npm install
-```
+- **Structured Knowledge ON** → prioritizes relevant, well-ranked content
+- **Structured Knowledge OFF** → degrades retrieval quality
 
-2. Run the Vite app locally:
+Same docs. Same model. Different results.
 
-```bash
-npm run dev
-```
+## What this shows
 
-3. (Optional, recommended) Run a local Cloudflare Pages environment so `functions/` is active:
+- AI doesn’t read your whole docs site
+- Retrieval selects a small set of content first
+- Answer quality depends on that selection
+- Poor retrieval = poor answers (even with good docs)
 
-```bash
-npm run build
-npm run pages:dev
-```
+This reframes the problem:
+**AI doc failures are often retrieval failures, not writing failures**
 
-If you use function secrets locally, copy `.dev.vars.example` to `.dev.vars` and set values.
+## Features
 
-## Deploy (Git-integrated Cloudflare Pages)
+- Chat-based documentation assistant
+- Structured vs unstructured retrieval toggle
+- “AI Thinking” panel with:
+  - retrieved chunks
+  - ranking signals
+  - match explanations
+- Embedded Git documentation dataset
+- Cloudflare Pages + Functions backend
+- Rate limiting on API
 
-Use Git integration (not direct upload):
+## Tech Stack
 
-1. Initialize and push this project to GitHub:
+- React + TypeScript + Vite
+- Cloudflare Pages + Functions
+- OpenAI API
 
-```bash
-cd ai-doc-explainable-demo
-git init
-git add .
-git commit -m "Initial Cloudflare Pages React+TS+Vite project"
-git branch -M main
-git remote add origin <YOUR_GITHUB_REPO_URL>
-git push -u origin main
-```
+## Why this exists
 
-2. In Cloudflare Dashboard:
-- Go to **Workers & Pages** -> **Create** -> **Pages** -> **Connect to Git**.
-- Select the `ai-doc-explainable-demo` repository.
-- Build settings:
-  - Framework preset: `Vite`
-  - Build command: `npm run build`
-  - Build output directory: `dist`
+This isn’t just a chatbot demo.
 
-3. Save and deploy. Future pushes to `main` trigger automatic deployments.
+It’s a small, explainable system that shows how:
+- content structure
+- retrieval logic
+- ranking
+- and UX transparency
 
-## Environment variables
+directly impact AI performance.
 
-### Local (`.dev.vars`)
+It’s meant to support conversations around:
+- AI-ready documentation
+- RAG quality
+- UX for AI systems
+- content as system design
 
-```bash
-cp .dev.vars.example .dev.vars
-```
+## Try asking
 
-Set:
+- What’s the difference between reset and revert?
+- How do I recover from detached HEAD?
+- How do I unstage a file?
+- What do I do if my push is rejected?
 
-```bash
-OPENAI_API_KEY=your_real_key_here
-```
-
-### Cloudflare Pages (Preview + Production)
-
-1. Open your Pages project in Cloudflare Dashboard.
-2. Go to **Settings** -> **Environment variables**.
-3. Add `OPENAI_API_KEY` under:
-   - **Preview**
-   - **Production**
-4. Save and redeploy so `/api/chat` can read the key.
-
-## Security & Rate Limiting
-
-- `/api/chat` is protected with Cloudflare Workers Rate Limiting binding `AI_CHAT_RATE_LIMITER`.
-- `wrangler.toml` uses `[[ratelimits]]` and requires Wrangler `>= 4.36.0` (your version is already newer).
-- Set `namespace_id` in `wrangler.toml` to the Rate Limiting namespace ID from your Cloudflare dashboard.
-- `OPENAI_API_KEY` must be set in Cloudflare Pages environment variables (Preview + Production) and in local `.dev.vars` for local function calls.
-- `.dev.vars` is ignored by git (do not commit secrets).
-
-### Local run with Pages Functions
-
-```bash
-npm install
-npm run build
-npx wrangler pages dev dist
-```
-
-### Quick API checks
-
-```bash
-curl -i http://127.0.0.1:8788/api/health
-```
-
-```bash
-curl -i -X POST http://127.0.0.1:8788/api/chat \
-  -H "Content-Type: application/json" \
-  -d '{"question":"How do I undo a staged file?","mode":"structured"}'
-```
-
-Rate limiting is local to a Cloudflare location and eventually consistent, so short bursts near limits may not be perfectly synchronized across regions.
-
-## C3 command (recommended scaffold command)
-
-Run this on a machine with npm registry access:
-
-```bash
-npm create cloudflare@latest ai-doc-explainable-demo -- --framework=react --platform=pages --typescript
-```
-
-This repository is already laid out to match that goal and include `functions/` for Pages Functions.
-
-## Doctor
-
-### Node requirement
-
-- Use Node `18.18.0+` (Node 20 LTS recommended).
-
-### Clean reinstall
-
-```bash
-cd /Users/katiewilliamson/Desktop/portfolio-2026-live/ai-doc-explainable-demo
-rm -rf node_modules package-lock.json
-npm install
-```
-
-No `--legacy-peer-deps` or `--force` is required with the pinned versions in this repo.
-
-### Local run (Pages + Functions)
-
-```bash
-npm run build
-npx wrangler pages dev dist
-```
-
-If you get a browser 404 at `/`, verify you started Wrangler from this repo and built successfully.
-If port 9229 is busy on your machine, `npm run pages:dev` already moves the inspector to `9230`.
-
-### Quick curl checks
-
-```bash
-curl -s http://127.0.0.1:8788/api/health
-```
-
-```bash
-curl -s -X POST http://127.0.0.1:8788/api/chat \
-  -H "Content-Type: application/json" \
-  -d '{"question":"How do I undo a staged file?","mode":"structured"}'
-```
+Then toggle Structured
