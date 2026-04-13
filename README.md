@@ -1,74 +1,55 @@
 # AI Doc Explainable Docs Demo
 
-An interactive demo showing how AI documentation assistants succeed or fail based on **retrieval quality**, not just the model or the docs themselves.
+This repository is a sample of work and a functioning prototype that demonstrates a core AI-content principle: answer quality depends heavily on retrieval quality, not just model quality.
 
-## Live Demo
-https://ai-doc-explainable-docs-demo.pages.dev/
+## Problem
 
-## Overview
+Teams often assume that if documentation is "good" and the model is "smart," an AI doc assistant should work well.
 
-This project demonstrates a core truth about AI-powered documentation:
+In practice, many failures happen earlier in the system:
 
-> The model can only answer from what it’s given — and retrieval determines what it sees.
+- the wrong content gets retrieved
+- relevant information is ranked poorly
+- the interface hides why the answer appeared
 
-Using a small Git documentation set, this app lets you ask questions in two modes:
+That makes AI documentation feel unreliable and hard to improve.
 
-- **Structured Knowledge ON** → prioritizes relevant, well-ranked content
-- **Structured Knowledge OFF** → degrades retrieval quality
+## Solution
 
-Same docs. Same model. Different results.
+This prototype creates a small, explainable documentation assistant that lets people compare better and worse retrieval conditions using the same documentation set.
 
-## What this shows
+It includes:
 
-- AI doesn’t read your whole docs site
-- Retrieval selects a small set of content first
-- Answer quality depends on that selection
-- Poor retrieval = poor answers (even with good docs)
+- a chat-based documentation interface
+- a structured knowledge toggle
+- visible retrieval context and ranking signals
+- an "AI Thinking" panel to make the system more inspectable
 
-This reframes the problem:
-**AI doc failures are often retrieval failures, not writing failures**
+The purpose is to show that AI-ready documentation is also a retrieval, structure, and UX problem.
 
-## Features
+## Tools
 
-- Chat-based documentation assistant
-- Structured vs unstructured retrieval toggle
-- “AI Thinking” panel with:
-  - retrieved chunks
-  - ranking signals
-  - match explanations
-- Embedded Git documentation dataset
-- Cloudflare Pages + Functions backend
-- Rate limiting on API
-
-## Tech Stack
-
-- React + TypeScript + Vite
-- Cloudflare Pages + Functions
+- React
+- TypeScript
+- Vite
+- Cloudflare Pages
+- Cloudflare Functions
 - OpenAI API
 
-## Why this exists
+## Prototype Notes
 
-This isn’t just a chatbot demo.
+- sample of work
+- functioning prototype
+- built to support conversations about RAG quality, AI-ready docs, and explainable AI UX
+- intended as an educational demo, not a production documentation platform
 
-It’s a small, explainable system that shows how:
-- content structure
-- retrieval logic
-- ranking
-- and UX transparency
+## Live Demo
 
-directly impact AI performance.
+[ai-doc-explainable-docs-demo.pages.dev](https://ai-doc-explainable-docs-demo.pages.dev/)
 
-It’s meant to support conversations around:
-- AI-ready documentation
-- RAG quality
-- UX for AI systems
-- content as system design
+## Running Locally
 
-## Try asking
-
-- What’s the difference between reset and revert?
-- How do I recover from detached HEAD?
-- How do I unstage a file?
-- What do I do if my push is rejected?
-
-Then toggle Structured
+```bash
+npm install
+npm run dev
+```
